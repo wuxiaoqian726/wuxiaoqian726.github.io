@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title><![CDATA[Raymond's Blog]]></title>
+  
+  <link href="/atom.xml" rel="self"/>
+  <link href="http://wuxiaoqian726.github.io/"/>
+  <updated>2015-12-17T14:32:31.341Z</updated>
+  <id>http://wuxiaoqian726.github.io/</id>
+  
+  <author>
+    <name><![CDATA[Raymond]]></name>
+    
+  </author>
+  
+  <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title><![CDATA[新博客]]></title>
+    <link href="http://wuxiaoqian726.github.io/2015/12/17/%E6%96%B0%E5%8D%9A%E5%AE%A2/"/>
+    <id>http://wuxiaoqian726.github.io/2015/12/17/新博客/</id>
+    <published>2015-12-17T14:32:31.000Z</published>
+    <updated>2015-12-17T14:32:31.341Z</updated>
+    <content type="html"></content>
+    <summary type="html">
+    
+    </summary>
+    
+  </entry>
+  
+</feed>
