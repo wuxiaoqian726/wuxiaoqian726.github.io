@@ -3,17 +3,29 @@
 <head>
   <meta charset="utf-8">
   
-  <title>Raymond&#39;s Blog</title>
+  <title>抽奖设计 | Raymond&#39;s Blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description">
-<meta property="og:type" content="website">
-<meta property="og:title" content="Raymond's Blog">
-<meta property="og:url" content="http://wuxiaoqian726.github.io/index.html">
+  <meta name="description" content="项目中有一个抽奖功能，用户通过学习，或完成任务后所获得的积分，经验达到某个等级时，可以升级并获得抽奖机会。管理员会在后台新建抽奖活动，并配置该活动的奖品，奖品对应的数量，权重，即中奖概率，每个租户当前只会有一个抽奖活动。主要的几个需求点：
+
+在奖品没有被抽光的情况下，用户每次抽奖必中(场景类似微信抢红包)；
+可以设置奖品的权重，数量，并且抽奖活动进行中可以某个调高奖品权重，以提高某个奖品的中奖概率">
+<meta property="og:type" content="article">
+<meta property="og:title" content="抽奖设计">
+<meta property="og:url" content="http://wuxiaoqian726.github.io/2016/03/03/lottery-design/index.html">
 <meta property="og:site_name" content="Raymond's Blog">
-<meta property="og:description">
+<meta property="og:description" content="项目中有一个抽奖功能，用户通过学习，或完成任务后所获得的积分，经验达到某个等级时，可以升级并获得抽奖机会。管理员会在后台新建抽奖活动，并配置该活动的奖品，奖品对应的数量，权重，即中奖概率，每个租户当前只会有一个抽奖活动。主要的几个需求点：
+
+在奖品没有被抽光的情况下，用户每次抽奖必中(场景类似微信抢红包)；
+可以设置奖品的权重，数量，并且抽奖活动进行中可以某个调高奖品权重，以提高某个奖品的中奖概率">
+<meta property="og:image" content="http://wuxiaoqian726.github.io/img/lotteryt-1">
+<meta property="og:image" content="http://wuxiaoqian726.github.io/img/lotteryt-2">
+<meta property="og:updated_time" content="2016-03-03T14:45:32.066Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Raymond's Blog">
-<meta name="twitter:description">
+<meta name="twitter:title" content="抽奖设计">
+<meta name="twitter:description" content="项目中有一个抽奖功能，用户通过学习，或完成任务后所获得的积分，经验达到某个等级时，可以升级并获得抽奖机会。管理员会在后台新建抽奖活动，并配置该活动的奖品，奖品对应的数量，权重，即中奖概率，每个租户当前只会有一个抽奖活动。主要的几个需求点：
+
+在奖品没有被抽光的情况下，用户每次抽奖必中(场景类似微信抢红包)；
+可以设置奖品的权重，数量，并且抽奖活动进行中可以某个调高奖品权重，以提高某个奖品的中奖概率">
   
     <link rel="alternative" href="/atom.xml" title="Raymond&#39;s Blog" type="application/atom+xml">
   
@@ -59,9 +71,7 @@
   </div>
 </header>
       <div class="outer">
-        <section id="main">
-  
-    <article id="post-lottery-design" class="article article-type-post" itemscope itemprop="blogPost">
+        <section id="main"><article id="post-lottery-design" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2016/03/03/lottery-design/" class="article-date">
   <time datetime="2016-03-03T14:24:31.000Z" itemprop="datePublished">2016-03-03</time>
@@ -74,8 +84,8 @@
       <header class="article-header">
         
   
-    <h1 itemprop="name">
-      <a class="article-title" href="/2016/03/03/lottery-design/">抽奖设计</a>
+    <h1 class="article-title" itemprop="name">
+      抽奖设计
     </h1>
   
 
@@ -149,89 +159,20 @@
     </footer>
   </div>
   
-</article>
-
-
+    
+<nav id="article-nav">
   
-    <article id="post-Cache" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2016/01/26/Cache/" class="article-date">
-  <time datetime="2016-01-26T13:24:31.000Z" itemprop="datePublished">2016-01-26</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
   
-    <h1 itemprop="name">
-      <a class="article-title" href="/2016/01/26/Cache/">最近在缓存中遇到了几个问题</a>
-    </h1>
+    <a href="/2016/01/26/Cache/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">最近在缓存中遇到了几个问题</div>
+    </a>
   
+</nav>
 
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h3 id="u4E00-_u9891_u7E41_u83B7_u53D6_u5927_u4E2A_u7F13_u5B58"><a href="#u4E00-_u9891_u7E41_u83B7_u53D6_u5927_u4E2A_u7F13_u5B58" class="headerlink" title="一.频繁获取大个缓存"></a>一.频繁获取大个缓存</h3><p>　　前段时间运维的zb监控一直报警，redis缓存服务器的内网网卡出口流量在高峰时期经常报警，超过阀值500M。通过在报警时期redis monitor，slow log监控命令，及redis-rdb-tools找出value比较大的值后发现,有些租户整个部门树缓存value值超过4k，而且被频繁获取，而且获取人员信息等访问频率高的重要接口，通过获取整个部门树缓存然后只取出单个部门信息。<br>询问开发人员这样实现的原因有三个:<br>　　1.在访问频率不高的接口需要获取某个部门下的子部门，为了避免循环调用redis，因此系统初期设计将所有部门信息作为一个value放入redis缓存。<br>　　2.开发人员为了单纬度维护缓存，获取单个部门时，取出所有部门，然后遍历取出单个。<br>　　3.系统初期需求并不需要在个人主页，社区首页等重要接口中返回单个部门的基本信息。</p>
-<p>　　随着系统用户量的提升，需求的演变，从redis中频繁取出大key，占用redis出口网卡。解决办法是增加以部门id为key，部门基本信息为value的缓存。在部门有上下级变动，或者部门叫动时，将所有id对应的缓存删除。考虑到类似这样的操作不频繁。这样的方案可接受。</p>
-<h2 id="u4E8C-_u7F13_u5B58_u7A7F_u900F"><a href="#u4E8C-_u7F13_u5B58_u7A7F_u900F" class="headerlink" title="二.缓存穿透"></a>二.缓存穿透</h2><p> 　　在项目新版本上线几天后，系统使用高峰期间首页访问超时，数据库服务器io，cpu使用率都超过报警罚值，从mysql慢日志中发现几个统计count,distint统计的sql，被大量执行。接近拖垮mysql服务器，统计数sql的结果用于首页的引导语，总共有多少用户学习，通过了这门课程，最新在学习的三个人。开发人员将这些统计值，及引导语信息放在缓存，并设置固定的过期时间。项目发布时间是周五晚上，发布完周末用户访问量不大，不会出现雪崩的问题，到了工作日，缓存恰好过期，程序的逻辑是判断缓存没有，则从数据库获取，当数据库执行获取逻辑比较慢时，其他请求又继续涌向数据库，进而引发系统雪崩。类似这样的问题，解决方式有很多种:<br> 　　1.程序判断缓存失效时，设置一个volatile的标示位，只允许一个线程去数据库取数据，其他线程等待。集群环境，则使用redis分布式锁的命令。但有一个风险点，如果这个数据库执行逻辑耗时比较久，访问量大，tomcat大量线程会进入等待状态，短时间内无法响应其他接口请求。<br> 　　2.采取类似业务降级的思路，程序中缓存中获取不到值时直接返回0给手机端，或者返回一个特定的标示位，手机端不做引导语的展示，不去数据库执行统计语句。<br> 　　3.也是最简单的做法，使用一个定时job，每个半个小时去数据库统计一次，而后将值放到缓存中。并结合第二种做法，在取不到值时直接返回0,防止定时job跑失败，程序穿透到缓存。</p>
-<p>　　缓存穿透的模块是另外一个team负责的，回顾这次事故，部门管理上也存在问题，开发人员甚至TeamLeader在需求评审设计编码期间，对统计数，缓存穿透类似的问题没有足够的敏感度，使系统埋下了隐患，在用户使用高峰期时系统直接挂掉。</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://wuxiaoqian726.github.io/2016/01/26/Cache/" data-id="cijvfukwe0000bsr5xujke4fm" class="article-share-link">Share</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/cache/">cache</a></li></ul>
-
-    </footer>
-  </div>
   
 </article>
 
-
-  
-    <article id="post-新博客" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2015/12/17/新博客/" class="article-date">
-  <time datetime="2015-12-17T14:32:31.000Z" itemprop="datePublished">2015-12-17</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2015/12/17/新博客/">新博客</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://wuxiaoqian726.github.io/2015/12/17/新博客/" data-id="cijvfukxc0001bsr5hna7xlhk" class="article-share-link">Share</a>
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-  
 </section>
         
           <aside id="sidebar">

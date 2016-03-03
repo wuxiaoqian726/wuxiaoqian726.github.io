@@ -4,7 +4,7 @@
   
   <link href="/atom.xml" rel="self"/>
   <link href="http://wuxiaoqian726.github.io/"/>
-  <updated>2016-01-26T14:02:58.676Z</updated>
+  <updated>2016-03-03T14:45:32.066Z</updated>
   <id>http://wuxiaoqian726.github.io/</id>
   
   <author>
@@ -13,6 +13,77 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title><![CDATA[抽奖设计]]></title>
+    <link href="http://wuxiaoqian726.github.io/2016/03/03/lottery-design/"/>
+    <id>http://wuxiaoqian726.github.io/2016/03/03/lottery-design/</id>
+    <published>2016-03-03T14:24:31.000Z</published>
+    <updated>2016-03-03T14:45:32.066Z</updated>
+    <content type="html"><![CDATA[<p>项目中有一个抽奖功能，用户通过学习，或完成任务后所获得的积分，经验达到某个等级时，可以升级并获得抽奖机会。管理员会在后台新建抽奖活动，并配置该活动的奖品，奖品对应的数量，权重，即中奖概率，每个租户当前只会有一个抽奖活动。主要的几个需求点：</p>
+<ul>
+<li>在奖品没有被抽光的情况下，用户每次抽奖必中(场景类似微信抢红包)；</li>
+<li>可以设置奖品的权重，数量，并且抽奖活动进行中可以某个调高奖品权重，以提高某个奖品的中奖概率。，这个权重值和奖品数量无关，用户想让某些大奖在重大运营活动期间被抽走。而且活动抽奖期间，修改权重时，抽奖活动不能停止；</li>
+<li>支持限量实物奖品和无限量虚拟的奖品。某些租户奖品全部是限量的实物，某些租户是实物奖品+虚拟奖品；</li>
+</ul>
+<h4 id="u73B0_u6709_u7B97_u6CD5_3A"><a href="#u73B0_u6709_u7B97_u6CD5_3A" class="headerlink" title="现有算法:"></a>现有算法:</h4><ul>
+<li>根据每个奖品的权重，组成一段段区间。比如有5个奖品权重分别是，1,2,3,4,5；则组成的区间是：0—1—3—6—10—15 ；每次抽奖随机生成一个位于1-15的随机数。如果确定随机数落在那个区间，则是中那个奖品。</li>
+<li>如果调整加大某个奖品的权重，则该奖品的区间范围会增加，进而提高中奖概率；比如将原先权重为2的奖品，权重修改成8，权重值变成1,3,4,5,8，则新组成的区间是：0—1—4—8—13—21。权重值大的奖品中奖概率加大；</li>
+<li>如果某个奖品被抽光，则权重区间要调整。假设权重为1的奖品被抽光，则组成区间变成：0—2—5—9—14；</li>
+<li>奖品数量和权重信息存放在redis，用redis的hash结构，一个抽奖活动一个hash；</li>
+</ul>
+<h4 id="u62BD_u5956_u6D41_u7A0B_3A"><a href="#u62BD_u5956_u6D41_u7A0B_3A" class="headerlink" title="抽奖流程:"></a>抽奖流程:</h4><p>判断个人抽奖次数是否大于0-&gt;个人抽奖次数减一-&gt;根据权重计算随机数-&gt;确定中奖区间对应的奖品-&gt;将对应奖品次数减1-&gt;保存中奖纪录-&gt;保存个人抽奖次数异动记录；<br>在并发情况下，上面流程有两个地方需要加锁处理：</p>
+<ul>
+<li>每个用户同时只允许一个抽奖请求被处理；原因：先从数据库取出个人抽奖次数，判断是否大于0，大于0则减1更新到数据库，如果这里不做锁控制的话，用户多终端并发抽奖可能出现抽奖次数为-1的情况；</li>
+<li>每个租户同时只允许一个抽奖请求被处理；原因：假设线程A，B同时抽中权重为1的权重，并且该奖品的数量为1，这是两个线程从数据库取出判断，奖品数量为1 ，执行后续的抽奖逻辑，这时会造成奖品被多抽；</li>
+</ul>
+<p>所以抽奖流程图大致如下：<br><img src="/img/lotteryt-1" alt="抽奖流程"><br>上面的个人锁和租户锁都是用redis setnx实现的分布式锁。</p>
+<h4 id="u95EE_u9898_u70B9_3A"><a href="#u95EE_u9898_u70B9_3A" class="headerlink" title="问题点:"></a>问题点:</h4><ul>
+<li>当抽奖请求比较多时，比如租户的重大运营或者年会活动，会造成请求都被租户锁block住，占用大量的Tomcat线程，使Tomcat不能响应其他接口的请求；</li>
+<li>由于每个租户只允许一个请求进入抽奖流程，锁的粒度比较大，tps上不去；</li>
+<li>如果用户拿到客户端和手机端通信的票据(站点用https，理论上不太可能)，并刷抽奖接口，大量请求也会被个人锁block住，占用大量tomcat线程；</li>
+</ul>
+<h4 id="u4F18_u5316_u65B9_u6848"><a href="#u4F18_u5316_u65B9_u6848" class="headerlink" title="优化方案"></a>优化方案</h4><p>优化分成两部分，进入抽奖流程前，抽奖流程；</p>
+<h5 id="u62BD_u5956_u6D41_u7A0B_u524D_u4F18_u5316_uFF1A"><a href="#u62BD_u5956_u6D41_u7A0B_u524D_u4F18_u5316_uFF1A" class="headerlink" title="抽奖流程前优化："></a>抽奖流程前优化：</h5><ol>
+<li>抽奖请求到达服务端，判断是否带token。假如不带token进入2，带token进入3</li>
+<li>判断该该用户是否有抽奖请求正在被处理，如果没有，生成一个token，lottery:userId为key将该token存入redis,存储结构如下图。反之则返回特定错误码，客户端捕获错误码进行友好提示，即不允许多终端设备同时抽奖，也解决请求线程被个人锁block的问题；然后进入4；</li>
+<li>判断该token是否合法，不合法则返回错误码，合法则判断该token是否已经有抽奖结果，有则返回中奖信息，否则返回特定状态码，客户端继续轮询；</li>
+<li>将信息以json格式：{userId:xxx,token:xxx}放入抽奖队列；</li>
+<li>抽奖消费者，从抽奖队列取出抽奖信息，进入抽奖流程进行消费；</li>
+</ol>
+<h5 id="u62BD_u5956_u6D41_u7A0B_u4F18_u5316_uFF1A"><a href="#u62BD_u5956_u6D41_u7A0B_u4F18_u5316_uFF1A" class="headerlink" title="抽奖流程优化："></a>抽奖流程优化：</h5><p>主要优化思路，缩小锁的范围，租户锁其实是粗粒度的悲观锁，每次只允许一个线程进入抽奖流程。在多个线程抽中同一个奖品的情况下，奖品才需要加锁，可以将锁的粒度减小到奖品这一级。</p>
+<p>redis哈希的数据结构：<br><img src="/img/lotteryt-2" alt="token hash"></p>
+<h5 id="u62BD_u5956_u6D41_u7A0B_u4F18_u5316_uFF1A-1"><a href="#u62BD_u5956_u6D41_u7A0B_u4F18_u5316_uFF1A-1" class="headerlink" title="抽奖流程优化："></a>抽奖流程优化：</h5><p>主要优化思路，缩小锁的范围，租户锁其实是粗粒度的悲观锁，每次只允许一个线程进入抽奖流程。在多个线程抽中同一个奖品的情况下，奖品才需要加锁，可以将锁的粒度减小到奖品这一级。</p>
+<p>奖品锁的实现主要由两个思路：</p>
+<h5 id="1-_u57FA_u4E8Eredis_u5B9E_u73B0"><a href="#1-_u57FA_u4E8Eredis_u5B9E_u73B0" class="headerlink" title="1.基于redis实现"></a>1.基于redis实现</h5><p>当抽奖线程判断奖品数量为1时，尝试将该奖品锁住，成功锁住，则进行后续操作。锁拿不到，则重新生成随机数，确定中奖奖品。</p>
+<p><pre><code><br> if(prize.getCount()==1){<br>  if(!distributedLock.tryLock(prize.getId()))<br>      return;//走重试逻辑<br>      //get prize count from db<br>       int prizeCount=getPrizeCountFromDB(prize.getId());<br>       //double check prize count<br>       if(prizeCount==0)<br>          return;//走重试逻辑<br>  updatePrizeCount(prize.getId(),-1);<br>  db.commit();<br>  distributedLock.unlock();<br>}<br>updatePrizeCount(prize.getId(),-1);<br>db.commit();<br></code></pre></p>
+<p>上面流程有两个注意点:</p>
+<ol>
+<li>抽奖流程，更新奖品数量的事务要先提交，分布式奖品锁才解锁；</li>
+<li>奖品分布式锁后，需要double check:当线程A判断奖品数量==1，并且拿到锁；</li>
+</ol>
+<p>原因：</p>
+<ol>
+<li><p>假设线程A拿到锁之后，将奖品数量减1变成0，然后unlock ，在提交事务之前；由于mysql的事务隔离机制是read commited，这时线程B判断奖品数量还是1(doule check也是1)，重新拿到锁之后，进入抽奖流程，奖品就会被多抽；</p>
+</li>
+<li><p>假设线程A拿到锁之后，将奖品数量减1变成0，然后提交事务 ，在unlock之前；线程B运行了if(prize.getCount()==1)，进入了if流程，这是线程A unlock，线程B重新拿到锁，假设这是没有double check，线程B进入抽奖流程，奖品就会被多抽；</p>
+</li>
+</ol>
+<p>上面代码是第一个版本，以为不会有bug，其实还是会有：假设prize.getCount()=2，如果这是线程A,B,C同是抽中改奖品，并且判断该奖品数量不为1，线程A,B,C执行后续的抽奖流程，则会造成该奖品数量被减成-1；<br>所以不能等到奖品数量为1时，才将奖品锁住，抽中奖品就需要马上锁住。代码变成：</p>
+<p><pre><code><br>distributedLock.lock(prize.getId());<br>try{<br>   int prizeCount=getPrizeCountFromDB(prize.getId());<br>   //double check prize count<br>   if(prizeCount==0)<br>       return;//走重试逻辑<br>   updatePrizeCount(prize.getId(),-1);<br>   db.commit();<br>}finally{<br>   distributedLock.unlock();<br>}<br></code></pre></p>
+<h5 id="2-_u57FA_u4E8E_u6570_u636E_u5E93_u5B9E_u73B0"><a href="#2-_u57FA_u4E8E_u6570_u636E_u5E93_u5B9E_u73B0" class="headerlink" title="2.基于数据库实现"></a>2.基于数据库实现</h5><p>修改更新奖品数据的语句，</p>
+<p><pre><code>update prize set prize_count=prize_count-1 where id=? and prize_count&gt;0;</code></pre></p>
+<p>网上有文章(<a href="http://blog.sae.sina.com.cn/archives/3738" target="_blank" rel="external">http://blog.sae.sina.com.cn/archives/3738</a>)<br>说，该语句能一定程度上解决奖品被多抽，但是不能避免奖品数量被更新成-1；经过查阅其他资料和测试后，发现此说法是误导的。mysql的update where更新时是基于当前读，上面的语句mysql会从innodb读取id符合条件的记录，并加排它锁，这时其他事务更新不了该记录。参考文章(<a href="http://hedengcheng.com/?p=771)。在执行updatePrizeCount(prize.getId(),-1" target="_blank" rel="external">http://hedengcheng.com/?p=771)。在执行updatePrizeCount(prize.getId(),-1</a>)<br>后，判断affect row是不是大于0，如果是说明更新成功，奖品数量成功-1，否则，说明奖品数量已经是0，走重试逻辑。但是这种方案最终还是落地到数据库锁上。能支持的并发数量，跟奖品数量有关。</p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>项目中有一个抽奖功能，用户通过学习，或完成任务后所获得的积分，经验达到某个等级时，可以升级并获得抽奖机会。管理员会在后台新建抽奖活动，并配置该活动的奖品，奖品对应的数量，权重，即中奖概率，每个租户当前只会有一个抽奖活动。主要的几个需求点：</p>
+<ul>
+<li>在奖品没]]>
+    </summary>
+    
+      <category term="cache" scheme="http://wuxiaoqian726.github.io/tags/cache/"/>
+    
+  </entry>
   
   <entry>
     <title><![CDATA[最近在缓存中遇到了几个问题]]></title>
