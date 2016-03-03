@@ -17,9 +17,9 @@
 
 在奖品没有被抽光的情况下，用户每次抽奖必中(场景类似微信抢红包)；
 可以设置奖品的权重，数量，并且抽奖活动进行中可以某个调高奖品权重，以提高某个奖品的中奖概率">
-<meta property="og:image" content="http://wuxiaoqian726.github.io/img/lotteryt-1">
-<meta property="og:image" content="http://wuxiaoqian726.github.io/img/lotteryt-2">
-<meta property="og:updated_time" content="2016-03-03T14:56:04.625Z">
+<meta property="og:image" content="http://wuxiaoqian726.github.io/img/lottery-1.png">
+<meta property="og:image" content="http://wuxiaoqian726.github.io/img/lottery-2.png">
+<meta property="og:updated_time" content="2016-03-03T15:13:01.804Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="抽奖设计">
 <meta name="twitter:description" content="项目中有一个抽奖功能，用户通过学习，或完成任务后所获得的积分，经验达到某个等级时，可以升级并获得抽奖机会。管理员会在后台新建抽奖活动，并配置该活动的奖品，奖品对应的数量，权重，即中奖概率，每个租户当前只会有一个抽奖活动。主要的几个需求点：
@@ -110,7 +110,7 @@
 <li>每个用户同时只允许一个抽奖请求被处理；原因：先从数据库取出个人抽奖次数，判断是否大于0，大于0则减1更新到数据库，如果这里不做锁控制的话，用户多终端并发抽奖可能出现抽奖次数为-1的情况；</li>
 <li>每个租户同时只允许一个抽奖请求被处理；原因：假设线程A，B同时抽中权重为1的权重，并且该奖品的数量为1，这是两个线程从数据库取出判断，奖品数量为1 ，执行后续的抽奖逻辑，这时会造成奖品被多抽；</li>
 </ul>
-<p>所以抽奖流程图大致如下：<br><img src="/img/lotteryt-1" alt="抽奖流程"><br>上面的个人锁和租户锁都是用redis setnx实现的分布式锁。</p>
+<p>所以抽奖流程图大致如下：<br><img src="/img/lottery-1.png" alt="抽奖流程"><br>上面的个人锁和租户锁都是用redis setnx实现的分布式锁。</p>
 <h4 id="u95EE_u9898_u70B9_3A"><a href="#u95EE_u9898_u70B9_3A" class="headerlink" title="问题点:"></a>问题点:</h4><ul>
 <li>当抽奖请求比较多时，比如租户的重大运营或者年会活动，会造成请求都被租户锁block住，占用大量的Tomcat线程，使Tomcat不能响应其他接口的请求；</li>
 <li>由于每个租户只允许一个请求进入抽奖流程，锁的粒度比较大，tps上不去；</li>
@@ -125,7 +125,7 @@
 <li>抽奖消费者，从抽奖队列取出抽奖信息，进入抽奖流程进行消费；</li>
 </ol>
 <h5 id="u62BD_u5956_u6D41_u7A0B_u4F18_u5316_uFF1A"><a href="#u62BD_u5956_u6D41_u7A0B_u4F18_u5316_uFF1A" class="headerlink" title="抽奖流程优化："></a>抽奖流程优化：</h5><p>主要优化思路，缩小锁的范围，租户锁其实是粗粒度的悲观锁，每次只允许一个线程进入抽奖流程。在多个线程抽中同一个奖品的情况下，奖品才需要加锁，可以将锁的粒度减小到奖品这一级。</p>
-<p>redis哈希的数据结构：<br><img src="/img/lotteryt-2" alt="token hash"></p>
+<p>redis哈希的数据结构：<br><img src="/img/lottery-2.png" alt="token hash"></p>
 <h5 id="u62BD_u5956_u6D41_u7A0B_u4F18_u5316_uFF1A-1"><a href="#u62BD_u5956_u6D41_u7A0B_u4F18_u5316_uFF1A-1" class="headerlink" title="抽奖流程优化："></a>抽奖流程优化：</h5><p>主要优化思路，缩小锁的范围，租户锁其实是粗粒度的悲观锁，每次只允许一个线程进入抽奖流程。在多个线程抽中同一个奖品的情况下，奖品才需要加锁，可以将锁的粒度减小到奖品这一级。</p>
 <p>奖品锁的实现主要由两个思路：</p>
 <h5 id="1-_u57FA_u4E8Eredis_u5B9E_u73B0"><a href="#1-_u57FA_u4E8Eredis_u5B9E_u73B0" class="headerlink" title="1.基于redis实现"></a>1.基于redis实现</h5><p>当抽奖线程判断奖品数量为1时，尝试将该奖品锁住，成功锁住，则进行后续操作。锁拿不到，则重新生成随机数，确定中奖奖品。</p>
@@ -151,7 +151,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://wuxiaoqian726.github.io/2016/03/03/lottery-design/" data-id="cilcekys50004dkr5dufe5hwt" class="article-share-link">Share</a>
+      <a data-url="http://wuxiaoqian726.github.io/2016/03/03/lottery-design/" data-id="cilceuo220004lwr57tmq3tej" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/多线程-性能优化/">多线程 性能优化</a></li></ul>
