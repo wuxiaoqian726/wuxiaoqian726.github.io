@@ -4,7 +4,7 @@
   
   <link href="/atom.xml" rel="self"/>
   <link href="http://wuxiaoqian726.github.io/"/>
-  <updated>2016-03-03T14:45:32.066Z</updated>
+  <updated>2016-03-03T14:56:04.625Z</updated>
   <id>http://wuxiaoqian726.github.io/</id>
   
   <author>
@@ -19,7 +19,7 @@
     <link href="http://wuxiaoqian726.github.io/2016/03/03/lottery-design/"/>
     <id>http://wuxiaoqian726.github.io/2016/03/03/lottery-design/</id>
     <published>2016-03-03T14:24:31.000Z</published>
-    <updated>2016-03-03T14:45:32.066Z</updated>
+    <updated>2016-03-03T14:56:04.625Z</updated>
     <content type="html"><![CDATA[<p>项目中有一个抽奖功能，用户通过学习，或完成任务后所获得的积分，经验达到某个等级时，可以升级并获得抽奖机会。管理员会在后台新建抽奖活动，并配置该活动的奖品，奖品对应的数量，权重，即中奖概率，每个租户当前只会有一个抽奖活动。主要的几个需求点：</p>
 <ul>
 <li>在奖品没有被抽光的情况下，用户每次抽奖必中(场景类似微信抢红包)；</li>
@@ -81,7 +81,7 @@
 <li>在奖品没]]>
     </summary>
     
-      <category term="cache" scheme="http://wuxiaoqian726.github.io/tags/cache/"/>
+      <category term="多线程 性能优化" scheme="http://wuxiaoqian726.github.io/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B-%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/"/>
     
   </entry>
   
