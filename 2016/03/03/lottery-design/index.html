@@ -96,7 +96,7 @@
         <p>项目中有一个抽奖功能，用户通过学习，或完成任务后所获得的积分，经验达到某个等级时，可以升级并获得抽奖机会。管理员会在后台新建抽奖活动，并配置该活动的奖品，奖品对应的数量，权重，即中奖概率，每个租户当前只会有一个抽奖活动。主要的几个需求点：</p>
 <ul>
 <li>在奖品没有被抽光的情况下，用户每次抽奖必中(场景类似微信抢红包)；</li>
-<li>可以设置奖品的权重，数量，并且抽奖活动进行中可以某个调高奖品权重，以提高某个奖品的中奖概率。，这个权重值和奖品数量无关，用户想让某些大奖在重大运营活动期间被抽走。而且活动抽奖期间，修改权重时，抽奖活动不能停止；</li>
+<li>可以设置奖品的权重，数量，并且抽奖活动进行中可以某个调高奖品权重，以提高某个奖品的中奖概率。这个权重值和奖品数量无关，用户想让某些大奖在重大运营活动期间被抽走。而且活动抽奖期间，修改权重时，抽奖活动不能停止；</li>
 <li>支持限量实物奖品和无限量虚拟的奖品。某些租户奖品全部是限量的实物，某些租户是实物奖品+虚拟奖品；</li>
 </ul>
 <h4 id="u73B0_u6709_u7B97_u6CD5_3A"><a href="#u73B0_u6709_u7B97_u6CD5_3A" class="headerlink" title="现有算法:"></a>现有算法:</h4><ul>
@@ -124,12 +124,13 @@
 <li>将信息以json格式：{userId:xxx,token:xxx}放入抽奖队列；</li>
 <li>抽奖消费者，从抽奖队列取出抽奖信息，进入抽奖流程进行消费；</li>
 </ol>
-<h5 id="u62BD_u5956_u6D41_u7A0B_u4F18_u5316_uFF1A"><a href="#u62BD_u5956_u6D41_u7A0B_u4F18_u5316_uFF1A" class="headerlink" title="抽奖流程优化："></a>抽奖流程优化：</h5><p>主要优化思路，缩小锁的范围，租户锁其实是粗粒度的悲观锁，每次只允许一个线程进入抽奖流程。在多个线程抽中同一个奖品的情况下，奖品才需要加锁，可以将锁的粒度减小到奖品这一级。</p>
 <p>redis哈希的数据结构：<br><img src="/img/lottery-2.png" alt="token hash"></p>
+<h5 id="u62BD_u5956_u6D41_u7A0B_u4F18_u5316_uFF1A"><a href="#u62BD_u5956_u6D41_u7A0B_u4F18_u5316_uFF1A" class="headerlink" title="抽奖流程优化："></a>抽奖流程优化：</h5><p>主要优化思路，缩小锁的范围，租户锁其实是粗粒度的悲观锁，每次只允许一个线程进入抽奖流程。在多个线程抽中同一个奖品的情况下，奖品才需要加锁，可以将锁的粒度减小到奖品这一级。</p>
+
 <h5 id="u62BD_u5956_u6D41_u7A0B_u4F18_u5316_uFF1A-1"><a href="#u62BD_u5956_u6D41_u7A0B_u4F18_u5316_uFF1A-1" class="headerlink" title="抽奖流程优化："></a>抽奖流程优化：</h5><p>主要优化思路，缩小锁的范围，租户锁其实是粗粒度的悲观锁，每次只允许一个线程进入抽奖流程。在多个线程抽中同一个奖品的情况下，奖品才需要加锁，可以将锁的粒度减小到奖品这一级。</p>
 <p>奖品锁的实现主要由两个思路：</p>
 <h5 id="1-_u57FA_u4E8Eredis_u5B9E_u73B0"><a href="#1-_u57FA_u4E8Eredis_u5B9E_u73B0" class="headerlink" title="1.基于redis实现"></a>1.基于redis实现</h5><p>当抽奖线程判断奖品数量为1时，尝试将该奖品锁住，成功锁住，则进行后续操作。锁拿不到，则重新生成随机数，确定中奖奖品。</p>
-<p><pre><code><br> if(prize.getCount()==1){<br>  if(!distributedLock.tryLock(prize.getId()))<br>      return;//走重试逻辑<br>      //get prize count from db<br>       int prizeCount=getPrizeCountFromDB(prize.getId());<br>       //double check prize count<br>       if(prizeCount==0)<br>          return;//走重试逻辑<br>  updatePrizeCount(prize.getId(),-1);<br>  db.commit();<br>  distributedLock.unlock();<br>}<br>updatePrizeCount(prize.getId(),-1);<br>db.commit();<br></code></pre></p>
+<p><pre><code><br> if(prize.getCount()==1){<br>  if(!distributedLock.tryLock(prize.getId()))<br>     {return;//走重试逻辑}<br>  //get prize count from db<br>  int prizeCount=getPrizeCountFromDB(prize.getId());<br>  //double check prize count<br>  if(prizeCount==0)<br>     {return;//走重试逻辑}<br>  updatePrizeCount(prize.getId(),-1);<br>  db.commit();<br>  distributedLock.unlock();<br>}<br>updatePrizeCount(prize.getId(),-1);<br>db.commit();<br></code></pre></p>
 <p>上面流程有两个注意点:</p>
 <ol>
 <li>抽奖流程，更新奖品数量的事务要先提交，分布式奖品锁才解锁；</li>
