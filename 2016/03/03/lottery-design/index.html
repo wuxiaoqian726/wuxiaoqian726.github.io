@@ -127,8 +127,6 @@
 <p>redis哈希的数据结构：<br><img src="/img/lottery-2.png" alt="token hash"></p>
 <h5 id="u62BD_u5956_u6D41_u7A0B_u4F18_u5316_uFF1A"><a href="#u62BD_u5956_u6D41_u7A0B_u4F18_u5316_uFF1A" class="headerlink" title="抽奖流程优化："></a>抽奖流程优化：</h5><p>主要优化思路，缩小锁的范围，租户锁其实是粗粒度的悲观锁，每次只允许一个线程进入抽奖流程。在多个线程抽中同一个奖品的情况下，奖品才需要加锁，可以将锁的粒度减小到奖品这一级。</p>
 
-<h5 id="u62BD_u5956_u6D41_u7A0B_u4F18_u5316_uFF1A-1"><a href="#u62BD_u5956_u6D41_u7A0B_u4F18_u5316_uFF1A-1" class="headerlink" title="抽奖流程优化："></a>抽奖流程优化：</h5><p>主要优化思路，缩小锁的范围，租户锁其实是粗粒度的悲观锁，每次只允许一个线程进入抽奖流程。在多个线程抽中同一个奖品的情况下，奖品才需要加锁，可以将锁的粒度减小到奖品这一级。</p>
-<p>奖品锁的实现主要由两个思路：</p>
 <h5 id="1-_u57FA_u4E8Eredis_u5B9E_u73B0"><a href="#1-_u57FA_u4E8Eredis_u5B9E_u73B0" class="headerlink" title="1.基于redis实现"></a>1.基于redis实现</h5><p>当抽奖线程判断奖品数量为1时，尝试将该奖品锁住，成功锁住，则进行后续操作。锁拿不到，则重新生成随机数，确定中奖奖品。</p>
 <p><pre><code><br> if(prize.getCount()==1){<br>  if(!distributedLock.tryLock(prize.getId()))<br>     {return;//走重试逻辑}<br>  //get prize count from db<br>  int prizeCount=getPrizeCountFromDB(prize.getId());<br>  //double check prize count<br>  if(prizeCount==0)<br>     {return;//走重试逻辑}<br>  updatePrizeCount(prize.getId(),-1);<br>  db.commit();<br>  distributedLock.unlock();<br>}<br>updatePrizeCount(prize.getId(),-1);<br>db.commit();<br></code></pre></p>
 <p>上面流程有两个注意点:</p>
